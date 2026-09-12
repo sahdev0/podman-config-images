@@ -1,0 +1,21 @@
+services:
+  rustfs-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rustfs_server
+    ports:
+      - "9000:9000"
+      - "9001:9001" # web interface
+    environment:
+      # Change these credentials immediately before running
+      - RUSTFS_ACCESS_KEY=182741de9cb2d02f6c3f
+      - RUSTFS_SECRET_KEY=03a04eaea12e76d35acff73570b4424b7f743027
+      - RUSTFS_CONSOLE_ENABLE=true
+      - RUSTFS_CONSOLE_ADDRESS=:9001
+    volumes:
+      - rustfs_data:/data:Z
+
+volumes:
+  rustfs_data:
+    driver: local

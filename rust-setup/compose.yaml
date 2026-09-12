@@ -1,0 +1,20 @@
+services:
+  rust-env:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rust-dev
+    environment:
+      # Forces ALL cargo targets into the isolated container volume root
+      - CARGO_TARGET_DIR=/usr/src/myapp/target
+    volumes:
+      # 1. Mount your host source code (Enforces SELinux labeling with :Z)
+      - .:/usr/src/myapp:Z,U
+      # 2. Overlap the target directory with a fast, isolated container volume
+      - rust-target-cache:/usr/src/myapp/target
+      # 3. Persist downloaded crates/dependencies across container restarts
+      - rust-cargo-cache:/usr/local/cargo/registry
+
+volumes:
+  rust-target-cache:
+  rust-cargo-cache:
