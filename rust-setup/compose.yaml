@@ -1,20 +1,27 @@
 services:
-  rust-env:
+  rust-dev:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # Pass host IDs down to the Dockerfile to prevent root-owned file locks
+        USER_ID: ${HOST_UID:-1000}
+        GROUP_ID: ${HOST_GID:-1000}
+    image: localhost/rust-standard-dev:latest
     container_name: rust-dev
     environment:
       # Forces ALL cargo targets into the isolated container volume root
-      - CARGO_TARGET_DIR=/usr/src/myapp/target
+      - CARGO_TARGET_DIR=/usr/src/rust-workspace/target
     volumes:
-      # 1. Mount your host source code (Enforces SELinux labeling with :Z)
-      - .:/usr/src/myapp:Z,U
+      # 1. Mount host source code (Enforces SELinux labeling with :Z, and user namespaces with ,U)
+      - ${RUST_WORKSPACE:-.}:/usr/src/rust-workspace:Z,U
       # 2. Overlap the target directory with a fast, isolated container volume
-      - rust-target-cache:/usr/src/myapp/target
+      - rust-target-cache:/usr/src/rust-workspace/target
       # 3. Persist downloaded crates/dependencies across container restarts
-      - rust-cargo-cache:/usr/local/cargo/registry
+      - rust-cargo-home:/usr/local/cargo
+    stdin_open: true
+    tty: true
 
 volumes:
   rust-target-cache:
-  rust-cargo-cache:
+  rust-cargo-home:
